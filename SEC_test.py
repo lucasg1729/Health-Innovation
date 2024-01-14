@@ -18,14 +18,14 @@ driver.get('https://www.sec.gov/edgar/search-and-access')
 
 try:
     # Using CSS Selectors instead of XPath
-    searchbox = WebDriverWait(driver, 40).until(
+    searchbox = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, 'input#global-search-box')) #delays until searchbar is found
     )
     searchbox.click() # Click the search box before sending keys
     searchbox.clear()  # Clear the search box if needed
     searchbox.send_keys('SV Health')
 
-    searchButton = WebDriverWait(driver, 20).until(
+    searchButton = WebDriverWait(driver, 20).until( #currently not working
         EC.element_to_be_clickable((By.CSS_SELECTOR, 'button#global-search-form > fieldset > div > input.global-search-button'))
     )
     searchButton.click()
@@ -34,9 +34,6 @@ except TimeoutException:
     print("Element not found within the given time.")
     # Handle the exception as needed
 
-# finally:
-#     # Ensure the browser always closes
-#     driver.quit()
 input("Press Enter to close the browser...")
 driver.quit()
 
