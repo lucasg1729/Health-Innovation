@@ -16,7 +16,7 @@ try:
     )
     searchbox.click() # Click the search box before sending keys
     searchbox.clear()  # Clear the search box if needed
-    searchbox.send_keys('Fortnite')
+    searchbox.send_keys('Music')
 
     searchButton = WebDriverWait(driver, 20).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, 'button#search-icon-legacy'))
