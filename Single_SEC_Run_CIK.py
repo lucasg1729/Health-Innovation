@@ -23,7 +23,13 @@ box.click()
 box.send_keys('13F')
 time.sleep(2)
 row=1 #will use later to loop through all links
-driver.find_element(By.XPATH, f'/html/body/main/div[5]/div/div[3]/div[3]/div[2]/table/tbody/tr[{row}]/td[2]/div/a[2]').click()
+next = driver.find_element(By.XPATH, f'/html/body/main/div[5]/div/div[3]/div[3]/div[2]/table/tbody/tr[{row}]/td[2]/div/a[2]')
+next.click()
+base_url = next.get_attribute('href')[:70]
+new_url = base_url + 'primary_doc.xml'
+time.sleep(2)
+driver.switch_to.new_window()
+driver.get(new_url)
 time.sleep(2)
 
 # going to use this link to try to help me loop through the files https://www.youtube.com/watch?v=rkAa0um6JR0
