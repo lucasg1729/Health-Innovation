@@ -20,7 +20,8 @@ time.sleep(2) #waits 2 seconds so that the autosuggest has enough time
 searcher.send_keys(Keys.DOWN)
 searcher.send_keys(Keys.ENTER)
 time.sleep(2)
-parent_window = driver.current_window_handle
+parent_window = driver.current_window_handle #gets the location ID to switch back to initial tab
+
 ### Clicks on first filing
 box = driver.find_element(By.XPATH, '//*[@id="searchbox"]') #finds the searchbox to filter types of documents
 box.click()
@@ -29,29 +30,27 @@ time.sleep(2)
 row=1 #will use later to loop through all links
 next = driver.find_element(By.XPATH, f'/html/body/main/div[5]/div/div[3]/div[3]/div[2]/table/tbody/tr[{row}]/td[2]/div/a[2]')
 next.click()
+
+### Switches control to new tab
 all_handles = driver.window_handles
 driver.switch_to.window(all_handles[1])
-driver.find_element(By.XPATH, '/html/body/div[4]/div[2]/div/table/tbody/tr[5]/td[3]/a').click()
+driver.find_element(By.XPATH, '/html/body/div[4]/div[2]/div/table/tbody/tr[5]/td[3]/a').click()#opens xml file
 time.sleep(1)
-xml = driver.find_element(By.CSS_SELECTOR, 'body').text
+xml = driver.find_element(By.CSS_SELECTOR, 'body').text #gets the text of the xml data
 index = xml.index('<')
 xml_data = xml[index:]
 time.sleep(2)
+
+###Changes open tab to xml to excel converter
 driver.get('https://www.convertcsv.com/xml-to-csv.htm')
-# converter = driver.window_handles[1]
-# driver.switch_to.window(converter)
 conv_box = driver.find_element(By.XPATH, '//*[@id="txt1"]')
 conv_box.click()
-conv_box.send_keys(xml_data)
-# name_box = driver.find_element(By.XPATH, '//*[@id="fn"]')
-# name_box.click()
-# name_box.clear()
-# name_box.send_keys(name)
-driver.find_element(By.XPATH, '/html/body/div[1]/div[3]/div[2]/form/div[2]/input[2]').click()
-# driver.find_element(By.XPATH, '//*[@id="frm1"]/div[4]/label[2]/input').click()
+conv_box.send_keys(xml_data) #inputs xml data
+driver.find_element(By.XPATH, '/html/body/div[1]/div[3]/div[2]/form/div[2]/input[2]').click() #downloads as excel
 time.sleep(4)
-os.remove("/Users/lucasg17/Downloads/convertcsv.xlsx")
+os.remove("/Users/lucasg17/Downloads/convertcsv.xlsx") #deletes file after used
 
+### How to right click
 # actions = ActionChains(driver)
 # down_link = driver.find_element(By.XPATH, '/html/body/div[4]/div[2]/div/table/tbody/tr[5]/td[3]/a')
 # actions.context_click(down_link).perform()
