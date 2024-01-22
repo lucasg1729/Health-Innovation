@@ -11,18 +11,20 @@ import xlwings as xw
 import time # Import time module for delays
 
 driver = webdriver.Chrome() # Ensure the path is correct
-
 driver.get('https://www.sec.gov/edgar/search-and-access') #opens SEC
+
 ### gets to page with all of the files for the firm
 searcher = driver.find_element(By.XPATH, '//*[@id="global-search-box"]') #finds searchbox using xpath
 searcher.click()
-search_name = 'SV Health'
-searcher.send_keys(search_name)
+searcher.send_keys('1587143')
 time.sleep(2) #waits 2 seconds so that the autosuggest has enough time
 searcher.send_keys(Keys.DOWN)
 searcher.send_keys(Keys.ENTER)
 time.sleep(2)
 parent_window = driver.current_window_handle #gets the location ID to switch back to initial tab
+
+### Gets name of firm
+search_name = driver.find_element(By.XPATH, '/html/body/main/div[2]/div[1]/h3/span').text
 
 ### Clicks on first filing
 box = driver.find_element(By.XPATH, '//*[@id="searchbox"]') #finds the searchbox to filter types of documents
@@ -54,12 +56,22 @@ time.sleep(2)
 ###Moves data from new excel to Master
 master_wb = xw.Book("/Users/lucasg17/Documents/GitHub/Health-Innovation/Master.xlsx")
 master_sheets = master_wb.sheets
-master_sheets[0].name = search_name
+if len(master_sheets)==1: ### initializes list with name of sheets for later use
+    if master_sheets[0].name != search_name:
+        master_sheets[0].name = search_name
+    sheet_names = [master_sheets[0].name] 
+if search_name not in sheet_names: ### creates new sheet for vc firm if it doesn't have one
+    master_wb.sheets.add(search_name)
+    sheet_names.append(search_name)
 
 newdata_wb = xw.Book("/Users/lucasg17/Downloads/convertcsv.xlsx")
-new_data_raw = newdata_wb.sheets[0].range('A2').expand().value
+if master_wb.sheets[search_name]['A1'].value is None:
+    new_data_raw = newdata_wb.sheets[0].range('A1').expand().value
+    newrow = 0
+else:
+    new_data_raw = newdata_wb.sheets[0].range('A2').expand().value
+    newrow = master_sheets[0].range('A1').end('down').row
 temp_data = [i[:] for i in new_data_raw]
-newrow = master_sheets[0].range('A1').end('down').row
 master_wb.sheets[search_name][newrow,0].value = temp_data
 master_wb.save()
 os.remove("/Users/lucasg17/Downloads/convertcsv.xlsx") #deletes file after used
