@@ -24,7 +24,7 @@ try:
     searchButton.click()
 
     # Add further code here
-
+    print(driver.current_url)
     # Adding a delay to observe the browser behavior
     time.sleep(10)
 

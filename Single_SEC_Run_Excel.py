@@ -11,16 +11,21 @@ import xlwings as xw
 import time # Import time module for delays
 
 driver = webdriver.Chrome() # Ensure the path is correct
-driver.get('https://www.sec.gov/edgar/search-and-access') #opens SEC
 
 ### gets to page with all of the files for the firm
-searcher = driver.find_element(By.XPATH, '//*[@id="global-search-box"]') #finds searchbox using xpath
-searcher.click()
-searcher.send_keys('1587143')
-time.sleep(2) #waits 2 seconds so that the autosuggest has enough time
-searcher.send_keys(Keys.DOWN)
-searcher.send_keys(Keys.ENTER)
-time.sleep(2)
+search_check = True
+while search_check:
+    driver.get('https://www.sec.gov/edgar/search-and-access') #opens SEC
+    searcher = driver.find_element(By.XPATH, '//*[@id="global-search-box"]') #finds searchbox using xpath
+    searcher.click()
+    searcher.send_keys('1587143')
+    time.sleep(2) #waits 2 seconds so that the autosuggest has enough time
+    searcher.send_keys(Keys.DOWN)
+    searcher.send_keys(Keys.ENTER)
+    time.sleep(2)
+    if 'search' not in driver.current_url:
+        search_check = False
+
 parent_window = driver.current_window_handle #gets the location ID to switch back to initial tab
 
 ### Gets name of firm
@@ -38,6 +43,7 @@ next.click()
 ### Switches control to new tab
 all_handles = driver.window_handles
 driver.switch_to.window(all_handles[1])
+year = driver.find_element(By.XPATH, '/html/body/div[4]/div[1]/div[2]/div[1]/div[2]').text[0:4]
 driver.find_element(By.XPATH, '/html/body/div[4]/div[2]/div/table/tbody/tr[5]/td[3]/a').click()#opens xml file
 time.sleep(1)
 xml = driver.find_element(By.CSS_SELECTOR, 'body').text #gets the text of the xml data
@@ -50,8 +56,8 @@ driver.get('https://www.convertcsv.com/xml-to-csv.htm')
 conv_box = driver.find_element(By.XPATH, '//*[@id="txt1"]')
 conv_box.click()
 conv_box.send_keys(xml_data) #inputs xml data
-driver.find_element(By.XPATH, '/html/body/div[1]/div[3]/div[2]/form/div[2]/input[2]').click() #downloads as excel
 time.sleep(2)
+driver.find_element(By.XPATH, '/html/body/div[1]/div[3]/div[2]/form/div[2]/input[2]').click() #downloads as excel
 
 ###Moves data from new excel to Master
 master_wb = xw.Book("/Users/lucasg17/Documents/GitHub/Health-Innovation/Master.xlsx")
@@ -68,12 +74,19 @@ newdata_wb = xw.Book("/Users/lucasg17/Downloads/convertcsv.xlsx")
 if master_wb.sheets[search_name]['A1'].value is None:
     new_data_raw = newdata_wb.sheets[0].range('A1').expand().value
     newrow = 0
+    temp_data = [i[:] for i in new_data_raw]
+    for data_list in temp_data[1:]:
+        data_list.insert(0, 2000)
+    temp_data[0].insert(0, 'Year')
 else:
     new_data_raw = newdata_wb.sheets[0].range('A2').expand().value
     newrow = master_sheets[0].range('A1').end('down').row
-temp_data = [i[:] for i in new_data_raw]
+    temp_data = [i[:] for i in new_data_raw]
+    for data_list in temp_data:
+        data_list.insert(0, year)
+print(temp_data)
 master_wb.sheets[search_name][newrow,0].value = temp_data
-master_wb.save()
+master_wb.save("/Users/lucasg17/Documents/GitHub/Health-Innovation/Master.xlsx")
 os.remove("/Users/lucasg17/Downloads/convertcsv.xlsx") #deletes file after used
 
 # going to use this link to try to help me loop through the files https://www.youtube.com/watch?v=rkAa0um6JR0
