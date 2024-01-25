@@ -16,10 +16,10 @@ driver = webdriver.Chrome() # Ensure the path is correct
 search_check = True
 while search_check:
     driver.get('https://www.sec.gov/edgar/search-and-access') #opens SEC
-    try:
+    try: # handles the ad popup by reloading it if an error is thrown since ad is in the way
         searcher = driver.find_element(By.XPATH, '//*[@id="global-search-box"]') #finds searchbox using xpath
         searcher.click()
-        searcher.send_keys('1587143')
+        searcher.send_keys('1587143') #types in CIK ID
         time.sleep(2) #waits 2 seconds so that the autosuggest has enough time
         searcher.send_keys(Keys.DOWN)
         searcher.send_keys(Keys.ENTER)
@@ -33,13 +33,14 @@ parent_window = driver.current_window_handle #gets the location ID to switch bac
 
 ### Gets name of firm
 time.sleep(.5)
-search_name = driver.find_element(By.XPATH, '/html/body/main/div[2]/div[1]/h3/span').text
+search_name = driver.find_element(By.XPATH, '/html/body/main/div[2]/div[1]/h3/span').text #name of firm
 
 ### Opens converter and switches control back to main page
-driver.execute_script("window.open('');")
-driver.switch_to.window(driver.window_handles[1])
+driver.execute_script("window.open('');") #new tab
+driver.switch_to.window(driver.window_handles[1]) #switches control to it
+# PSA window_handles go in order that the tab was opened
 driver.get('https://www.convertcsv.com/xml-to-csv.htm')
-driver.switch_to.window(driver.window_handles[0])
+driver.switch_to.window(driver.window_handles[0]) #switches back to main page
 
 ### Clicks on first filing
 box = driver.find_element(By.XPATH, '//*[@id="searchbox"]') #finds the searchbox to filter types of documents
@@ -47,30 +48,30 @@ box.click()
 box.send_keys('13F')
 full_number_text = driver.find_element(By.XPATH, '/html/body/main/div[5]/div/div[3]/div[4]').text[18:26]
 num_entries = ''
-for i in range(len(full_number_text)):
+for i in range(len(full_number_text)): #gets the total number of entries and stores it in a variable
     if full_number_text[i].isnumeric():
         num_entries = num_entries + full_number_text[i]
 num_entries = int(num_entries)
-row=1 #will use later to loop through all links
+row=1 #iterator
 while row<=num_entries:
-    next = driver.find_element(By.XPATH, f'/html/body/main/div[5]/div/div[3]/div[3]/div[2]/table/tbody/tr[{row}]/td[2]/div/a[2]')
+    next = driver.find_element(By.XPATH, f'/html/body/main/div[5]/div/div[3]/div[3]/div[2]/table/tbody/tr[{row}]/td[2]/div/a[2]') #filing
     next.click()
 
     ### Switches control to new tab
     time.sleep(.5)
-    driver.switch_to.window(driver.window_handles[2])
+    driver.switch_to.window(driver.window_handles[2]) #switches to filing tab just opened
     year = driver.find_element(By.XPATH, '/html/body/div[4]/div[1]/div[2]/div[1]/div[2]').text[0:4]
     driver.find_element(By.XPATH, '/html/body/div[4]/div[2]/div/table/tbody/tr[5]/td[3]/a').click()#opens xml file
     time.sleep(.5)
-    xml = driver.find_element(By.CSS_SELECTOR, 'body').text #gets the text of the xml data
+    xml = driver.find_element(By.CSS_SELECTOR, 'body').text #gets the entire page's text
     index = xml.index('<')
-    xml_data = xml[index:]
+    xml_data = xml[index:] #isolates just the xml data
     driver.close()
 
     ###Switches control to xml to excel converter
-    driver.switch_to.window(driver.window_handles[1])
-    if 'google' in driver.current_url:
-        driver.get('https://www.convertcsv.com/xml-to-csv.htm')
+    driver.switch_to.window(driver.window_handles[1]) #switches to converter
+    if 'google' in driver.current_url: #handles google ad popups
+        driver.get('https://www.convertcsv.com/xml-to-csv.htm') 
     conv_box = driver.find_element(By.XPATH, '//*[@id="txt1"]')
     driver.execute_script('arguments[0].scrollIntoView(true)', conv_box)
     conv_box.click()
@@ -90,32 +91,28 @@ while row<=num_entries:
         master_wb.sheets.add(search_name)
         sheet_names.append(search_name)
 
-    newdata_wb = xw.Book("/Users/lucasg17/Downloads/convertcsv.xlsx")
-    if master_wb.sheets[search_name]['A1'].value is None:
-        new_data_raw = newdata_wb.sheets[0].range('A1').expand().value
+    newdata_wb = xw.Book("/Users/lucasg17/Downloads/convertcsv.xlsx") #opens the new data in an excel
+    if master_wb.sheets[search_name]['A1'].value is None: #if it is a new sheet gets the headers too
+        new_data_raw = newdata_wb.sheets[0].range('A1').expand().value 
         newrow = 0
-        temp_data = [i[:] for i in new_data_raw]
-        for data_list in temp_data[1:]:
+        temp_data = [i[:] for i in new_data_raw] #gets the data in a form of a nested list
+        for data_list in temp_data[1:]: #adds years 
             data_list.insert(0, year)
-        temp_data[0].insert(0, 'Year')
+        temp_data[0].insert(0, 'Year') #adds year header
     else:
         new_data_raw = newdata_wb.sheets[0].range('A2').expand().value
         newrow = master_sheets[0].range('A1').end('down').row
-        temp_data = [i[:] for i in new_data_raw]
-        for data_list in temp_data:
+        temp_data = [i[:] for i in new_data_raw] #gets the data in a form of a nested list
+        for data_list in temp_data: #adds years 
             data_list.insert(0, year)
-    master_wb.sheets[search_name][newrow,0].value = temp_data
-    master_wb.save("/Users/lucasg17/Documents/GitHub/Health-Innovation/Master.xlsx")
+    master_wb.sheets[search_name][newrow,0].value = temp_data #appends data to master excel
+    master_wb.save("/Users/lucasg17/Documents/GitHub/Health-Innovation/Master.xlsx") #saves
     time.sleep(.5)
-    newdata_wb.close()
+    newdata_wb.close() #closes new data excel
     os.remove("/Users/lucasg17/Downloads/convertcsv.xlsx") #deletes file after used
 
-    ###closing tabs and returning to first page
-    all_handles = driver.window_handles
-    driver.switch_to.window(all_handles[0])
-
-
-    ### Increasing row
+    ### Increasing row and returns to first page
+    driver.switch_to.window(driver.window_handles[0])
     row+=1
 
 
