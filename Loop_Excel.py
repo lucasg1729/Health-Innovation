@@ -16,12 +16,15 @@ driver = webdriver.Chrome() # Ensure the path is correct
 search_check = True
 while search_check:
     driver.get('https://www.sec.gov/edgar/search-and-access') #opens SEC
-    searcher = driver.find_element(By.XPATH, '//*[@id="global-search-box"]') #finds searchbox using xpath
-    searcher.click()
-    searcher.send_keys('1587143')
-    time.sleep(2) #waits 2 seconds so that the autosuggest has enough time
-    searcher.send_keys(Keys.DOWN)
-    searcher.send_keys(Keys.ENTER)
+    try:
+        searcher = driver.find_element(By.XPATH, '//*[@id="global-search-box"]') #finds searchbox using xpath
+        searcher.click()
+        searcher.send_keys('1587143')
+        time.sleep(2) #waits 2 seconds so that the autosuggest has enough time
+        searcher.send_keys(Keys.DOWN)
+        searcher.send_keys(Keys.ENTER)
+    except:
+        search_check = True
     time.sleep(.5)
     if 'search' not in driver.current_url:
         search_check = False
