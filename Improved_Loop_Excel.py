@@ -14,7 +14,7 @@ while search_check:
     try: # handles the ad popup by reloading it if an error is thrown since ad is in the way
         searcher = driver.find_element(By.XPATH, '//*[@id="global-search-box"]') #finds searchbox using xpath
         searcher.click()
-        searcher.send_keys('1587143') #types in CIK ID
+        searcher.send_keys('1346824') #types in CIK ID
         time.sleep(2) #waits 2 seconds so that the autosuggest has enough time
         searcher.send_keys(Keys.DOWN)
         searcher.send_keys(Keys.ENTER)
@@ -37,6 +37,21 @@ driver.switch_to.window(driver.window_handles[1]) #switches control to it
 driver.get('https://www.convertcsv.com/xml-to-csv.htm')
 driver.switch_to.window(driver.window_handles[0]) #switches back to main page
 
+### Initializes Master Excel 
+master_wb = xw.Book("/Users/lucasg17/Documents/GitHub/Health-Innovation/Master.xlsx")
+master_sheets = master_wb.sheets
+sheet_names = []
+for j in master_wb.sheets:
+    sheet_names.append(j.name)
+if len(master_sheets)==1 and master_wb.sheets[0]['A1'].value is None: ### initializes list with name of sheets for later use
+    if master_sheets[0].name != search_name:
+        master_sheets[0].name = search_name
+    sheet_names = [master_sheets[0].name] 
+if search_name not in sheet_names: ### creates new sheet for vc firm if it doesn't have one
+    master_wb.sheets.add(search_name)
+    sheet_names.append(search_name)
+print(sheet_names)
+
 ### Clicks on first filing
 box = driver.find_element(By.XPATH, '//*[@id="searchbox"]') #finds the searchbox to filter types of documents
 box.click()
@@ -47,16 +62,25 @@ for i in range(len(full_number_text)): #gets the total number of entries and sto
     if full_number_text[i].isnumeric():
         num_entries = num_entries + full_number_text[i]
 num_entries = int(num_entries)
-row=1 #iterator
-while row<=num_entries:
+row=num_entries #iterator
+while row>=1:
+    doc_type = driver.find_element(By.XPATH, f'/html/body/main/div[5]/div/div[3]/div[3]/div[2]/table/tbody/tr[{row}]/td[1]').text
     next = driver.find_element(By.XPATH, f'/html/body/main/div[5]/div/div[3]/div[3]/div[2]/table/tbody/tr[{row}]/td[2]/div/a[2]') #filing
+    driver.execute_script('arguments[0].scrollIntoView(true)', next)
     next.click()
 
     ### Switches control to new tab
     time.sleep(.5)
     driver.switch_to.window(driver.window_handles[2]) #switches to filing tab just opened
     year = driver.find_element(By.XPATH, '/html/body/div[4]/div[1]/div[2]/div[1]/div[2]').text[0:4]
-    driver.find_element(By.XPATH, '/html/body/div[4]/div[2]/div/table/tbody/tr[5]/td[3]/a').click()#opens xml file
+    print(year)
+    try:
+        driver.find_element(By.XPATH, '/html/body/div[4]/div[2]/div/table/tbody/tr[5]/td[3]/a').click()#opens xml file
+    except:
+        driver.close()
+        row-=1
+        driver.switch_to.window(driver.window_handles[0])
+        continue
     time.sleep(.5)
     xml = driver.find_element(By.CSS_SELECTOR, 'body').text #gets the entire page's text
     index = xml.index('<')
@@ -78,7 +102,10 @@ while row<=num_entries:
     ###Moves data from new excel to Master
     master_wb = xw.Book("/Users/lucasg17/Documents/GitHub/Health-Innovation/Master.xlsx")
     master_sheets = master_wb.sheets
-    if len(master_sheets)==1: ### initializes list with name of sheets for later use
+    # sheet_names = []
+    # for j in master_wb.sheets:
+
+    if len(master_sheets)==1 and master_wb.sheets[0]['A1'].value is None: ### initializes list with name of sheets for later use
         if master_sheets[0].name != search_name:
             master_sheets[0].name = search_name
         sheet_names = [master_sheets[0].name] 
@@ -108,4 +135,5 @@ while row<=num_entries:
 
     ### Increasing row and returns to first page
     driver.switch_to.window(driver.window_handles[0])
-    row+=1
+    row-=1
+master_wb.save("/Users/lucasg17/Documents/GitHub/Health-Innovation/Master.xlsx") #saves
