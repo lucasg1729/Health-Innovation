@@ -4,7 +4,7 @@ from selenium.webdriver.common.keys import Keys
 import os
 import xlwings as xw
 import time # Import time module for delays
-from Excel_Append import add_data, intialize_master, converter, get_data, check_amendment
+from Improved_Functions import add_data, intialize_master, converter, get_data, check_amendment
 
 ###Takes in the CIK ID, location of master excel on computer, location of where the first excel would be saved, location of where the second excel would be saved
 def execute(ID, master_location, newdata_location, newdata_copy_location):

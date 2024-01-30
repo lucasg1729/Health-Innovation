@@ -4,7 +4,7 @@ from selenium.webdriver.common.keys import Keys
 import os
 import xlwings as xw
 import time # Import time module for delays
-from Excel_Append import add_data, intialize_master, converter, get_data, check_amendment
+from Improved_Functions import add_data, intialize_master, converter, get_data, check_amendment
 
 driver = webdriver.Chrome() # Ensure the path is correct
 
@@ -15,7 +15,7 @@ while search_check:
     try: # handles the ad popup by reloading it if an error is thrown since ad is in the way
         searcher = driver.find_element(By.XPATH, '//*[@id="global-search-box"]') #finds searchbox using xpath
         searcher.click()
-        searcher.send_keys('1346824') #types in CIK ID
+        searcher.send_keys('1587143') #types in CIK ID
         time.sleep(2) #waits 2 seconds so that the autosuggest has enough time
         searcher.send_keys(Keys.DOWN)
         searcher.send_keys(Keys.ENTER)

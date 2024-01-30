@@ -8,29 +8,33 @@ import time # Import time module for delays
 def add_data(master_book, newdata_loc, name, file_year): #adds data to master excel from other file
     master_sheets = master_book.sheets
     newdata_wb = xw.Book(newdata_loc) #opens the new data in an excel
+    headers = newdata_wb.sheets[0].range('A1').expand().value[0]
+    name_index = 0
+    value_index = 0
+    for j in range(len(headers)): #gets the index that the name and value are at so we can get that data later
+        if 'name' in headers[j]:
+            name_index = j
+        elif 'value' in headers[j]:
+            value_index = j
     if master_book.sheets[name]['A1'].value is None: #if it is a new sheet gets the headers too
         new_data_raw = newdata_wb.sheets[0].range('A1').expand().value 
         newrow = 0
-        temp_data = [i[:] for i in new_data_raw] #gets the data in a form of a nested list
+        temp_data = [[i[name_index], i[value_index]] for i in new_data_raw] #gets the data in a form of a nested list
         for data_list in temp_data[1:]: #adds years 
             data_list.insert(0, file_year)
         temp_data[0].insert(0, 'Year') #adds year header
     else:
         new_data_raw = newdata_wb.sheets[0].range('A2').expand().value
         newrow = master_sheets[name].range('A1').end('down').row
-        temp_data = [i[:] for i in new_data_raw] #gets the data in a form of a nested list
-        if type(temp_data[0]) == type([]):
+        print(new_data_raw)
+        # temp_data = [[i[name_index], i[value_index]] for i in new_data_raw] #gets the data in a form of a nested list
+        if type(new_data_raw[0]) == type([]):
+            temp_data = [[i[name_index], i[value_index]] for i in new_data_raw] #gets the data in a form of a nested list
             for data_list in temp_data: #adds years 
                 data_list.insert(0, file_year)
-        else:
+        else: #if appending amendment
+            temp_data = [new_data_raw[name_index], new_data_raw[value_index]] #gets the data in a form of 1D list
             temp_data.insert(0, file_year)
-            temp_data.pop(len(temp_data)-1) #goes 4 times to get rid of links at the end
-            temp_data.pop(len(temp_data)-1)
-            temp_data.pop(len(temp_data)-1)
-            temp_data.pop(len(temp_data)-1)
-    print(temp_data)
-    print(newrow)
-    print(master_book.sheets[name][newrow,0].value)
     master_book.sheets[name][newrow,0].value = temp_data #appends data to master excel
     time.sleep(.5)
     newdata_wb.close() #closes new data excel
