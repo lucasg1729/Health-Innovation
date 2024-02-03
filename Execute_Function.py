@@ -119,3 +119,7 @@ def execute(ID, master_location, newdata_location, newdata_copy_location):
 
 
     master_wb.save(master_location) #saves
+
+def execute_all(ID_list, master_loc, newdata_loc, newdata_copy_loc):
+    for i in ID_list:
+        execute(i, master_location=master_loc, newdata_location=newdata_loc, newdata_copy_location=newdata_copy_loc)

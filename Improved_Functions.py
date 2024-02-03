@@ -11,29 +11,30 @@ def add_data(master_book, newdata_loc, name, file_year): #adds data to master ex
     headers = newdata_wb.sheets[0].range('A1').expand().value[0]
     name_index = 0
     value_index = 0
-    for j in range(len(headers)): #gets the index that the name and value are at so we can get that data later
+    share_index = 0
+    for j in range(len(headers)): #gets the index that the name, value, and share price are at so we can get that data later
         if 'name' in headers[j]:
             name_index = j
         elif 'value' in headers[j]:
             value_index = j
+        elif 'shrsOrPrnAmt/sshPrnamt'== headers[j] or 'informationTable/infoTable/shrsOrPrnAmt/sshPrnamt'==headers[j]:
+            share_index = j
     if master_book.sheets[name]['A1'].value is None: #if it is a new sheet gets the headers too
         new_data_raw = newdata_wb.sheets[0].range('A1').expand().value 
         newrow = 0
-        temp_data = [[i[name_index], i[value_index]] for i in new_data_raw] #gets the data in a form of a nested list
+        temp_data = [[i[name_index], i[value_index], i[share_index]] for i in new_data_raw] #gets the data in a form of a nested list
         for data_list in temp_data[1:]: #adds years 
             data_list.insert(0, file_year)
         temp_data[0].insert(0, 'Year') #adds year header
     else:
         new_data_raw = newdata_wb.sheets[0].range('A2').expand().value
         newrow = master_sheets[name].range('A1').end('down').row
-        print(new_data_raw)
-        # temp_data = [[i[name_index], i[value_index]] for i in new_data_raw] #gets the data in a form of a nested list
         if type(new_data_raw[0]) == type([]):
-            temp_data = [[i[name_index], i[value_index]] for i in new_data_raw] #gets the data in a form of a nested list
+            temp_data = [[i[name_index], i[value_index], i[share_index]] for i in new_data_raw] #gets the data in a form of a nested list
             for data_list in temp_data: #adds years 
                 data_list.insert(0, file_year)
         else: #if appending amendment
-            temp_data = [new_data_raw[name_index], new_data_raw[value_index]] #gets the data in a form of 1D list
+            temp_data = [new_data_raw[name_index], new_data_raw[value_index], new_data_raw[share_index]] #gets the data in a form of 1D list
             temp_data.insert(0, file_year)
     master_book.sheets[name][newrow,0].value = temp_data #appends data to master excel
     time.sleep(.5)
