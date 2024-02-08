@@ -5,7 +5,7 @@ import os
 import xlwings as xw
 import time # Import time module for delays
 
-def add_data(master_book, newdata_loc, name, file_year): #adds data to master excel from other file
+def add_data(master_book, newdata_loc, name, file_year, file_quarter): #adds data to master excel from other file
     master_sheets = master_book.sheets
     newdata_wb = xw.Book(newdata_loc) #opens the new data in an excel
     headers = newdata_wb.sheets[0].range('A1').expand().value[0]
@@ -25,7 +25,9 @@ def add_data(master_book, newdata_loc, name, file_year): #adds data to master ex
         temp_data = [[i[name_index], i[value_index], i[share_index]] for i in new_data_raw] #gets the data in a form of a nested list
         for data_list in temp_data[1:]: #adds years 
             data_list.insert(0, file_year)
+            data_list.insert(1, file_quarter)
         temp_data[0].insert(0, 'Year') #adds year header
+        temp_data[0].insert(1, 'Quarter')
     else:
         new_data_raw = newdata_wb.sheets[0].range('A2').expand().value
         newrow = master_sheets[name].range('A1').end('down').row
@@ -33,9 +35,11 @@ def add_data(master_book, newdata_loc, name, file_year): #adds data to master ex
             temp_data = [[i[name_index], i[value_index], i[share_index]] for i in new_data_raw] #gets the data in a form of a nested list
             for data_list in temp_data: #adds years 
                 data_list.insert(0, file_year)
+                data_list.insert(1, file_quarter)
         else: #if appending amendment
             temp_data = [new_data_raw[name_index], new_data_raw[value_index], new_data_raw[share_index]] #gets the data in a form of 1D list
             temp_data.insert(0, file_year)
+            temp_data.insert(1, file_quarter)
     master_book.sheets[name][newrow,0].value = temp_data #appends data to master excel
     time.sleep(.5)
     newdata_wb.close() #closes new data excel
@@ -78,13 +82,16 @@ def get_data(web_driver, ind): #retrieves the data from the SEC filings page for
     time.sleep(.5)
     web_driver.switch_to.window(web_driver.window_handles[2]) #switches to filing tab just opened
     file_year = web_driver.find_element(By.XPATH, '/html/body/div[4]/div[1]/div[2]/div[1]/div[2]').text[0:4]
+    quarter_date = web_driver.find_element(By.XPATH, '/html/body/div[4]/div[1]/div[2]/div[2]/div[2]').text[5:7]
+    dates = {'03': 'Q1', '06': 'Q2', '09': 'Q3', '12': 'Q4'}
+    file_quarter = dates[quarter_date]
     web_driver.find_element(By.XPATH, '/html/body/div[4]/div[2]/div/table/tbody/tr[5]/td[3]/a').click()#opens xml file
     time.sleep(.5)
     xml = web_driver.find_element(By.CSS_SELECTOR, 'body').text #gets the entire page's text
     index = xml.index('<')
     data_text = xml[index:] #isolates just the xml data
     web_driver.close()
-    return (file_year, data_text)
+    return (file_year, file_quarter, data_text)
 
 def check_amendment(newdata_loc_1, newdata_loc_2): #returns True if the amendment is overwriting and False if it is adding
     newdata_wb = xw.Book(newdata_loc_1) #opens the new data in an excel

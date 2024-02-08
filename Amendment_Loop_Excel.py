@@ -62,7 +62,7 @@ while row<=num_entries:
         ### Switches control to new tab
         time.sleep(.5)
         driver.switch_to.window(driver.window_handles[2]) #switches to filing tab just opened
-        year = driver.find_element(By.XPATH, '/html/body/div[4]/div[1]/div[2]/div[1]/div[2]').text[0:4]
+        year = driver.find_element(By.XPATH, '/html/body/div[4]/div[1]/div[2]/div[2]/div[2]').text[0:4]
         try: #accounts for listings not in xml format
             driver.find_element(By.XPATH, '/html/body/div[4]/div[2]/div/table/tbody/tr[5]/td[3]/a').click()#opens xml file
         except:

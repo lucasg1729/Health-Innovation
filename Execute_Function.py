@@ -62,7 +62,10 @@ def execute(ID, master_location, newdata_location, newdata_copy_location):
             ### Switches control to new tab
             time.sleep(.5)
             driver.switch_to.window(driver.window_handles[2]) #switches to filing tab just opened
-            year = driver.find_element(By.XPATH, '/html/body/div[4]/div[1]/div[2]/div[1]/div[2]').text[0:4]
+            year = int(driver.find_element(By.XPATH, '/html/body/div[4]/div[1]/div[2]/div[2]/div[2]').text[0:4])
+            quarter_date = driver.find_element(By.XPATH, '/html/body/div[4]/div[1]/div[2]/div[2]/div[2]').text[5:7]
+            dates = {'03': 'Q1', '06': 'Q2', '09': 'Q3', '12': 'Q4'}
+            quarter = dates[quarter_date]
             try: #accounts for listings not in xml format
                 driver.find_element(By.XPATH, '/html/body/div[4]/div[2]/div/table/tbody/tr[5]/td[3]/a').click()#opens xml file
             except:
@@ -80,40 +83,40 @@ def execute(ID, master_location, newdata_location, newdata_copy_location):
             converter(web_driver=driver, data=xml_data)
 
             ###Moves data from new excel to Master
-            add_data(master_book=master_wb, newdata_loc=newdata_location, name=search_name, file_year=year)
+            add_data(master_book=master_wb, newdata_loc=newdata_location, name=search_name, file_year=year, file_quarter=quarter)
 
             ### Increasing row and returns to first page
             driver.switch_to.window(driver.window_handles[0])
             row+=1
         elif 'A' in driver.find_element(By.XPATH, f'/html/body/main/div[5]/div/div[3]/div[3]/div[2]/table/tbody/tr[{row+1}]/td[1]').text: #if there are two amendments
             ### gets the data from the two amendments and inputs them into master excel
-            year_1, xml_data_1 = get_data(web_driver=driver, ind=row)
+            year_1, quarter_1, xml_data_1 = get_data(web_driver=driver, ind=row)
             converter(web_driver=driver, data=xml_data_1)
             driver.switch_to.window(driver.window_handles[0])
 
-            year_2, xml_data_2 = get_data(web_driver=driver, ind=row+1)
+            year_2, quarter_2, xml_data_2 = get_data(web_driver=driver, ind=row+1)
             converter(web_driver=driver, data=xml_data_2)
             driver.switch_to.window(driver.window_handles[0])
-            add_data(master_book=master_wb, newdata_loc=newdata_copy_location, name=search_name, file_year=year_2) #put the full amendment first to handle the correct headers
-            add_data(master_book=master_wb, newdata_loc=newdata_location, name=search_name, file_year=year_1)
+            add_data(master_book=master_wb, newdata_loc=newdata_copy_location, name=search_name, file_year=year_2, file_quarter=quarter_2) #put the full amendment first to handle the correct headers
+            add_data(master_book=master_wb, newdata_loc=newdata_location, name=search_name, file_year=year_1, file_quarter=quarter_1)
 
             row+=3 #increases by 3 so that we skip over the amendments and the file its amending
         else:
             ### gets the data from the amendment based on which kind it is and puts it into 2 files
-            year_1, xml_data_1 = get_data(web_driver=driver, ind=row)
+            year_1, quarter_1, xml_data_1 = get_data(web_driver=driver, ind=row)
             converter(web_driver=driver, data=xml_data_1)
             driver.switch_to.window(driver.window_handles[0])
             
-            year_2, xml_data_2 = get_data(web_driver=driver, ind=row+1)
+            year_2, quarter_2, xml_data_2 = get_data(web_driver=driver, ind=row+1)
             converter(web_driver=driver, data=xml_data_2)
             driver.switch_to.window(driver.window_handles[0])
 
             if check_amendment(newdata_loc_1=newdata_location, newdata_loc_2=newdata_copy_location): #checks which kind of amendment - True=overwritten, False=addition
-                add_data(master_book=master_wb, newdata_loc=newdata_location, name=search_name, file_year=year_1) #do not append actual file since alrady overwritten
+                add_data(master_book=master_wb, newdata_loc=newdata_location, name=search_name, file_year=year_1, file_quarter=quarter_1) #do not append actual file since alrady overwritten
                 os.remove(newdata_copy_location) #deletes file after used
             else:
-                add_data(master_book=master_wb, newdata_loc=newdata_copy_location, name=search_name, file_year=year_2) #put the full amendment first to handle the correct headers
-                add_data(master_book=master_wb, newdata_loc=newdata_location, name=search_name, file_year=year_1)
+                add_data(master_book=master_wb, newdata_loc=newdata_copy_location, name=search_name, file_year=year_2, file_quarter=quarter_2) #put the full amendment first to handle the correct headers
+                add_data(master_book=master_wb, newdata_loc=newdata_location, name=search_name, file_year=year_1, file_quarter=quarter_1)
             
             row+=2 #increase by 2 to skip over amendment and the file its amending
 
