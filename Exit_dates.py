@@ -111,17 +111,6 @@ def export_tuples_to_excel(tuples, excel_path, sheet_name, start_col=0):
 
     with pd.ExcelWriter(excel_path, engine='openpyxl', mode='a',if_sheet_exists='overlay') as writer:
         # # Convert the list of tuples to a DataFrame
-        # df = pd.DataFrame(tuples)
-        # # Access the book property to work with the workbook directly
-        # writer = load_workbook(excel_path)
-        # if sheet_name in writer._sheets:
-        #     startrow = writer.sheets[sheet_name].max_row
-        # else:
-        #     startrow = 0
-
-        # # Write the DataFrame to the specified sheet
-        # df.to_excel(writer, sheet_name=sheet_name, startrow=startrow,
-        #             startcol=start_col, index=False, header=False)
         if 'openpyxl' in writer.supported_extensions:
             writer.book = load_workbook(excel_path)
         
@@ -156,12 +145,4 @@ excel_path = "/Users/lucasg17/Downloads/Raw Exit Data (1).xlsx"
 testing = '/Users/lucasg17/Documents/GitHub/Health-Innovation/Testing.xlsx'
 sheet_name = 0
 firm = 'BICYCLE THERAPEUTICS PLC'
-# result = find_value_by_condition(excel_path, specified_variable)
-# result = first_instances(raw_data,sheet_name)
-# print(result)
-# print(get_exit_date(firm,raw_data,sheet_name))
-# print(find_value_by_condition(raw_data,firm,'SV Health Investors, LLC'))
-# print(total_exit_dates(firm, raw_data, sheet_name))
-# print(new_all_exit_dates(raw_data,sheet_name))
-# write_excel(raw_data, testing, 'SV Health Investors, LLC', 'Master_SV1', 1)
-write_excel(raw_data, testing, 'SV Health Investors, LLC', 'Master_SV1', 25)
+write_excel(raw_data, testing, 'SV Health Investors, LLC', 'Master_SV1', 1)
